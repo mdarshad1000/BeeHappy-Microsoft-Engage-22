@@ -1,11 +1,12 @@
 from flask import Flask, render_template, Response, request
 import cv2
 import datetime, time
-import os, sys
-import numpy as np
+import os
 from threading import Thread
-import re
 import long_responses as long
+from chatterbot import ChatBot
+from chatterbot.trainers import ChatterBotCorpusTrainer
+
 
 
 global capture, rec_frame, switch, face, rec, out
@@ -31,6 +32,12 @@ smile_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_smil
 app = Flask(__name__, template_folder='./templates')
 
 camera = cv2.VideoCapture(0)
+
+
+# Chat Bot
+engage_bot = ChatBot("Chatterbot", storage_adapter="chatterbot.storage.SQLStorageAdapter")
+trainer = ChatterBotCorpusTrainer(engage_bot)
+trainer.train("chatterbot.corpus.english")
 
 
 def record(out):
@@ -97,83 +104,10 @@ def gen_frames():  # generate frame by frame from camera
             pass
 
 
-def message_probability(user_message, recognised_words, single_response=False, required_words=[]):
-    message_certainty = 0
-    has_required_words = True
-
-    # Counts how many words are present in each predefined message
-    for word in user_message:
-        if word in recognised_words:
-            message_certainty += 1
-
-    # Calculates the percent of recognised words in a user message
-    percentage = float(message_certainty) / float(len(recognised_words))
-
-    # Checks that the required words are in the string
-    for word in required_words:
-        if word not in user_message:
-            has_required_words = False
-            break
-
-    # Must either have the required words, or be a single response
-    if has_required_words or single_response:
-        return int(percentage * 100)
-    else:
-        return 0
-
-
-def check_all_messages(message):
-    highest_prob_list = {}
-
-    # Simplifies response creation / adds it to the dict
-    def response(bot_response, list_of_words, single_response=False, required_words=[]):
-        nonlocal highest_prob_list
-        highest_prob_list[bot_response] = message_probability(message, list_of_words, single_response, required_words)
-
-    # Responses -------------------------------------------------------------------------------------------------------
-    response('Hello!', ['hello', 'hi', 'hey', 'sup', 'heyo'], single_response=True)
-    response('My Name is Danny the Happy Bot!', ['my', 'name', 'is'], required_words=['name'])
-    response('See you!', ['bye', 'goodbye'], single_response=True)
-    response('I\'m doing fine, and you?', ['how', 'are', 'you', 'doing'], required_words=['how'])
-    response('You\'re welcome!', ['thank', 'thanks'], single_response=True)
-    response('Thank you!', ['love'], single_response=True)
-    response('Everything will be okay!', ['feel', 'not', 'mood'], single_response=True)
-
-    # Longer responses
-    response(long.R_ADVICE, ['give', 'advice', 'help', 'sad', 'stressed', 'angry'], single_response=True)
-    response(long.R_HAPPY, ['tunes', 'songs'], single_response=True)
-
-    best_match = max(highest_prob_list, key=highest_prob_list.get)
-    # print(highest_prob_list)
-    # print(f'Best match = {best_match} | Score: {highest_prob_list[best_match]}')
-
-    return long.unknown() if highest_prob_list[best_match] < 1 else best_match
-
-
-# Used to get the response
-def get_response(user_input):
-    split_message = re.split(r'\s+|[,;?!.-]\s*', user_input.lower())
-    response = check_all_messages(split_message)
-    return response
-
-
-@app.route("/get")
-def get_bot_response():
-    userText = request.args.get('msg')
-    #return str(english_bot.get_response(userText))
-    #print("Here")
-    return str(get_response(userText))
-
-
 @app.route('/')
 @app.route('/home')
 def index():
     return render_template('home.html')
-
-
-@app.route("/about")
-def about():
-    return render_template('about.html')
 
 
 @app.route("/smiledec")
@@ -184,6 +118,13 @@ def smiledec():
 @app.route("/chat")
 def chat():
     return render_template('chat.html')
+
+
+# Chat Bot
+@app.route('/get')
+def get_bot_response():
+    userText = request.args.get('msg')
+    return str(engage_bot.get_response(userText))
 
 
 @app.route('/video_feed')
@@ -226,8 +167,7 @@ def tasks():
                 thread.start()
             elif rec == False:
                 out.release()
-                          
-                 
+
     elif request.method == 'GET':
         return render_template('smiledec.html')
     return render_template('smiledec.html')
