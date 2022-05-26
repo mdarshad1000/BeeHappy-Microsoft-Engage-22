@@ -3,17 +3,11 @@ import cv2
 import datetime, time
 import os
 from threading import Thread
-import long_responses as long
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
 
-
-
 global capture, rec_frame, switch, face, rec, out
-capture = 0
-face = 0
-switch = 1
-rec = 0
+capture, face, switch, rec = 0, 0, 1, 0
 
 
 # make shots directory to save pics
@@ -22,17 +16,14 @@ try:
 except OSError as error:
     pass
 
-
 # Load pretrained face detection model
 face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 smile_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_smile.xml')
-
 
 # initialize flask app
 app = Flask(__name__, template_folder='./templates')
 
 camera = cv2.VideoCapture(0)
-
 
 # Chat Bot
 engage_bot = ChatBot("Chatterbot", storage_adapter="chatterbot.storage.SQLStorageAdapter")
@@ -42,7 +33,7 @@ trainer.train("chatterbot.corpus.english")
 
 def record(out):
     global rec_frame
-    while(rec):
+    while (rec):
         time.sleep(0.05)
         out.write(rec_frame)
 
@@ -71,7 +62,7 @@ def detect_face(frame):
 
     # frame = cv2.imshow('Smile Detector', frame)
     return frame
- 
+
 
 def gen_frames():  # generate frame by frame from camera
     global out, capture, rec_frame
@@ -85,12 +76,12 @@ def gen_frames():  # generate frame by frame from camera
                 now = datetime.datetime.now()
                 p = os.path.sep.join(['shots', "shot_{}.png".format(str(now).replace(":", ''))])
                 cv2.imwrite(p, frame)
-            
+
             if rec:
                 rec_frame = frame
-                frame= cv2.putText(cv2.flip(frame, 1), "Recording...", (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
-                frame=cv2.flip(frame, 1)
-            
+                frame = cv2.putText(cv2.flip(frame, 1), "Recording...", (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                    (0, 0, 255), 4)
+                frame = cv2.flip(frame, 1)
 
             try:
                 ret, buffer = cv2.imencode('.jpg', frame)
@@ -99,13 +90,12 @@ def gen_frames():  # generate frame by frame from camera
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             except Exception as e:
                 pass
-                
+
         else:
             pass
 
 
 @app.route('/')
-@app.route('/home')
 def index():
     return render_template('home.html')
 
@@ -121,7 +111,7 @@ def chat():
 
 
 # Chat Bot
-@app.route('/get')
+@app.route("/get")
 def get_bot_response():
     userText = request.args.get('msg')
     return str(engage_bot.get_response(userText))
@@ -143,14 +133,14 @@ def tasks():
             global face
             face = not face
             if face:
-                time.sleep(4)   
+                time.sleep(4)
         elif request.form.get('stop') == 'Stop/Start Video':
-            
+
             if switch == 1:
                 switch = 0
                 camera.release()
                 cv2.destroyAllWindows()
-                
+
             else:
                 camera = cv2.VideoCapture(0)
                 switch = 1
@@ -163,7 +153,7 @@ def tasks():
                 out = cv2.VideoWriter('vid_{}.avi'.format(str(now).replace(":", '')), fourcc, 20.0, (640, 480))
 
                 # Start new thread for recording the video
-                thread = Thread(target=record, args=[out,])
+                thread = Thread(target=record, args=[out, ])
                 thread.start()
             elif rec == False:
                 out.release()
@@ -175,6 +165,6 @@ def tasks():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
+
 camera.release()
 cv2.destroyAllWindows()
