@@ -60,6 +60,7 @@ def detect_face(frame):
                         color=(255, 0, 255))
             # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+
     # frame = cv2.imshow('Smile Detector', frame)
     return frame
 
