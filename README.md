@@ -7,7 +7,7 @@ people. <b>Bee Happy</b> is a simple initiative towards addressing mental health
 to help people take their first step towards a happy mental state.
 
 ## Key Features 
-* A facial recognition system that detects and notifies people when they smile.
+* A facial recognition system using a deep learning model that detects and notifies people when they smile.
 * In built video recording and photo capturing functionality to keep people engaged
 * A chat bot to give you company, with whom you can converse when you feel lonely
 
