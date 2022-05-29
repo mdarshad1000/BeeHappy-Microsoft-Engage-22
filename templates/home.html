@@ -1,12 +1,38 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <body>
+    <div class="intro">
+        <div class="intro-text">
+            <h1 class="hide">
+                <span class="hide-text">Welcome</span>
+            </h1>
+
+            <h1 class="hide">
+                <span class="hide-text">To</span>
+            </h1>
+
+            <h1 class="hide">
+                <span class="hide-text">Bee Happy :)</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="slider"></div>
+
 <div class="container">
     <div class="row">
-        <div>
-            <img src="{{ url_for('static', filename='BEE_HAPPY.mp4') }}" height="80%">
+        <div class="text-center">
+            <br><br><br><br>
+
+            <p class="text-left">
+                <br><br>
+                <img src="static/img/bee.png" width="600" height="600">
+            </p>
         </div>
     </div>
 </div>
 </body>
+
+
 {% endblock content %}
