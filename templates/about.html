@@ -1,8 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
 
-
-
+<body background="{{ url_for('static', filename='bg.jpg') }}">
     <br><br>
     <img src="static/img/header.jpg" width="612" height="184">
     <b><h1 class="center">Welcome to Bee Happy!</h1></b><br>
@@ -19,5 +18,7 @@
             <li class="blockquote">Uses Machine Learning Algorithm to find out if a person is currently smiling.</li>
             <li class="blockquote">Chat Bot with whom you can have conversations that makes you feel less lonely</li>
 
+
+    </body>
 
 {% endblock content %}
