@@ -6,13 +6,15 @@ from threading import Thread
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
 
+
+# Defining global variables
 global capture, rec_frame, switch, face, rec, out
 capture, face, switch, rec = 0, 0, 1, 0
 
 
-# make shots directory to save pics
+# Make a Capture folder to store captured images
 try:
-    os.mkdir('./shots')
+    os.mkdir('./capture')
 except OSError as error:
     pass
 
@@ -20,12 +22,12 @@ except OSError as error:
 face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 smile_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_smile.xml')
 
-# initialize flask app
+# Initialize flask app
 app = Flask(__name__, template_folder='./templates')
 
 camera = cv2.VideoCapture(0)
 
-# Chat Bot
+# Initializing and training the Chat
 engage_bot = ChatBot("Chatterbot", storage_adapter="chatterbot.storage.SQLStorageAdapter")
 trainer = ChatterBotCorpusTrainer(engage_bot)
 trainer.train("chatterbot.corpus.english")
@@ -33,7 +35,7 @@ trainer.train("chatterbot.corpus.english")
 
 def record(out):
     global rec_frame
-    while (rec):
+    while rec:
         time.sleep(0.05)
         out.write(rec_frame)
 
@@ -53,19 +55,15 @@ def detect_face(frame):
 
         smiles = smile_detector.detectMultiScale(face_grayscale, scaleFactor=1.7, minNeighbors=20)
 
-        # for (x_, y_, w_, h_) in smiles:
-        # cv2.rectangle(the_face, (x_, y_), (x_ + w_, y_ + h_), (100, 200, 50), 4)
         if len(smiles) > 0:
             cv2.putText(frame, 'nice, you are smiling', (x, y + h + 40), fontScale=1, fontFace=cv2.FONT_HERSHEY_TRIPLEX,
                         color=(255, 0, 255))
-            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-
-    # frame = cv2.imshow('Smile Detector', frame)
     return frame
 
 
-def gen_frames():  # generate frame by frame from camera
+# generate frame by frame from camera
+def gen_frames():
     global out, capture, rec_frame
     while True:
         success, frame = camera.read()
@@ -75,12 +73,12 @@ def gen_frames():  # generate frame by frame from camera
             if capture:
                 capture = 0
                 now = datetime.datetime.now()
-                p = os.path.sep.join(['shots', "shot_{}.png".format(str(now).replace(":", ''))])
+                p = os.path.sep.join(['capture', "capture_{}.png".format(str(now).replace(":", ''))])
                 cv2.imwrite(p, frame)
 
             if rec:
                 rec_frame = frame
-                frame = cv2.putText(cv2.flip(frame, 1), "Recording...", (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                frame = cv2.putText(cv2.flip(frame, 1), "Recording started", (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (0, 0, 255), 4)
                 frame = cv2.flip(frame, 1)
 
@@ -97,8 +95,13 @@ def gen_frames():  # generate frame by frame from camera
 
 
 @app.route('/')
-def index():
+def home():
     return render_template('home.html')
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 
 @app.route("/smiledec")
@@ -153,7 +156,7 @@ def tasks():
                 fourcc = cv2.VideoWriter_fourcc(*'XVID')
                 out = cv2.VideoWriter('vid_{}.avi'.format(str(now).replace(":", '')), fourcc, 20.0, (640, 480))
 
-                # Start new thread for recording the video
+                # New thread to record the video
                 thread = Thread(target=record, args=[out, ])
                 thread.start()
             elif rec == False:
