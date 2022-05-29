@@ -28,12 +28,18 @@ virtualenv BEEENV && source BEEENV/bin/activate
 ```
 pip install -r requirements.txt
 ```
-5. Open main.py and run the file to fire up your localserver.
+5. Open main.py and run the file to fire up your localserver or type ```python main.py``` and run via the termainal.
 6. Visit the below URL to check the website 
 ```
 http://localhost:5000/
 ```
 
+## Technologies used!
+![image]({})
+![image]({})
+![image]({})
+![image]({})
+![image]({https://img.shields.io/badge/Canva-%2300C4CC.svg?&style=for-the-badge&logo=Canva&logoColor=white})
 
 ## Contribution Guidelines
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
