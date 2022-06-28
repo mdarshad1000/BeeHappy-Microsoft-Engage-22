@@ -5,6 +5,7 @@ import os
 from threading import Thread
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
+from flask_ngrok import run_with_ngrok
 
 
 # Defining global variables
